@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: e1e4c52ef2450a242a1c976826f8260e
+timeCreated: 1536742957
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 121798
+  packageName: Ground Fitter
+  packageVersion: 1.2.2
+  assetPath: Assets/FImpossible Creations/Plugins - Animating/Ground Fitter/Demo
+    Ground Fitter/Prefabs/PR_GroundFitter_Folf.prefab
+  uploadId: 669810

@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 0d9ca0eb3035be8458d98a415fce3028
+timeCreated: 1558628521
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 121798
+  packageName: Ground Fitter
+  packageVersion: 1.2.2
+  assetPath: Assets/FImpossible Creations/Plugins - Animating/Ground Fitter/Demo
+    Ground Fitter/Other/AC_GroundFitterFhreeped.controller
+  uploadId: 669810

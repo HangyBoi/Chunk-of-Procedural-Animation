@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 641f447d686fdb046a77ed22326539bf
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 23800000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 121798
+  packageName: Ground Fitter
+  packageVersion: 1.2.2
+  assetPath: Assets/FImpossible Creations/Plugins - Animating/Ground Fitter/Demo
+    Ground Fitter/S_GroundFitter_Demo NavMesh/NavMesh.asset
+  uploadId: 669810

@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 6e9a90fd7229cc141b10695e9225d6f7
+timeCreated: 1558625816
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 121798
+  packageName: Ground Fitter
+  packageVersion: 1.2.2
+  assetPath: Assets/FImpossible Creations/Plugins - Animating/Ground Fitter/Demo
+    Ground Fitter/Prefabs/PR_GroundFitter_Fhreeped.prefab
+  uploadId: 669810

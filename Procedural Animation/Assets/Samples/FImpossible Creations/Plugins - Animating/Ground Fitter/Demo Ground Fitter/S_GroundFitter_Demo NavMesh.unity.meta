@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 7018d2247dc18744d8e34d0eaa95b733
+timeCreated: 1529749176
+licenseType: Store
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 121798
+  packageName: Ground Fitter
+  packageVersion: 1.2.2
+  assetPath: Assets/FImpossible Creations/Plugins - Animating/Ground Fitter/Demo
+    Ground Fitter/S_GroundFitter_Demo NavMesh.unity
+  uploadId: 669810
