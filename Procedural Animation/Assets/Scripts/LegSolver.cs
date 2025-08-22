@@ -41,6 +41,8 @@ public class LegSolver : MonoBehaviour
         // The "ideal" position is where the foot would be if it were directly under its starting point relative to the body
         idealPosition = body.position + (transform.position - body.position).normalized * footSpacing;
 
+        Debug.DrawRay(idealPosition + Vector3.up, Vector3.down * 2f, Color.red);
+
         float distance = Vector3.Distance(transform.position, idealPosition);
 
         // Check if the leg needs to take a step
