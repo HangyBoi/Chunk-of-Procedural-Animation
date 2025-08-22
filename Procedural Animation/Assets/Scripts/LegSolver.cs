@@ -4,105 +4,127 @@ using UnityEngine;
 // This script manages a single leg of the spider.
 public class LegSolver : MonoBehaviour
 {
-    [Header("IK Leg Components")]
-    [SerializeField] private Transform body;                    // The main body of the spider
-    [SerializeField] private Transform ikTarget;                // The target for the IK constraint
-    [SerializeField] private LayerMask terrainLayer;            // The layer the ground is on
+    // Self-explanatory variable names
+    private LegSolver legSolver;
 
-    [Header("Stepping Parameters")]
-    [SerializeField] private float stepDistance = 0.8f;         // The distance the leg can be from its ideal spot before it must step
-    [SerializeField] private float stepHeight = 0.4f;           // How high the leg lifts during a step
-    [SerializeField] private float stepSpeed = 2f;              // How fast the leg moves during a step
-    [SerializeField] private AnimationCurve stepHeightCurve;    // Curve to control the arc of the step
-    [SerializeField] private AnimationCurve stepSpeedCurve;     // Curve to control the speed of the step over time
+    [SerializeField] private Transform bodyTransform;
+    [SerializeField] private Transform rayOrigin;
+    public GameObject ikTarget;
 
-    // Public properties that the main SpiderController can access
-    public bool IsMoving { get; private set; }
-    public bool Movable { get; set; } = true; // The controller can set this to false to prevent this leg from moving
+    [SerializeField] private AnimationCurve speedCurve;
+    [SerializeField] private AnimationCurve heightCurve;
 
-    public Vector3 CurrentPosition => transform.position;
-    public Vector3 CurrentNormal { get; private set; }
+    private float tipMaxHeight = 0.2f;
+    private float tipAnimationTime = 0.15f;
+    private float tipAnimationFrameTime = 1 / 60.0f;
 
-    private Vector3 idealPosition;
-    private float footSpacing;
+    private float ikOffset = 1.0f;
+    private float tipMoveDist = 0.55f;
+    private float maxRayDist = 7.0f;
+    private float tipPassOver = 0.55f / 2.0f;
+
+    public Vector3 TipPos { get; private set; }
+    public Vector3 TipUpDir { get; private set; }
+    public Vector3 RaycastTipPos { get; private set; }
+    public Vector3 RaycastTipNormal { get; private set; }
+
+    public bool Animating { get; private set; } = false;
+    public bool Movable { get; set; } = false;
+    public float TipDistance { get; private set; }
+
+    private void Awake()
+    {
+        legSolver = GetComponentInParent<LegSolver>();
+
+        transform.parent = bodyTransform;
+        rayOrigin.parent = bodyTransform;
+        TipPos = ikTarget.transform.position;
+    }
 
     private void Start()
     {
-        // Store the initial distance from the body center to this leg's target
-        footSpacing = Vector3.Distance(transform.position, body.position);
-
-        // Initialize the leg on the ground
-        transform.position = FindGround();
-        CurrentNormal = Vector3.up;
+        UpdateIKTargetTransform();
     }
 
-    void Update()
+    private void Update()
     {
-        // The "ideal" position is where the foot would be if it were directly under its starting point relative to the body
-        idealPosition = body.position + (transform.position - body.position).normalized * footSpacing;
+        RaycastHit hit;
 
-        Debug.DrawRay(idealPosition + Vector3.up, Vector3.down * 2f, Color.red);
-
-        float distance = Vector3.Distance(transform.position, idealPosition);
-
-        // Check if the leg needs to take a step
-        if (distance > stepDistance && !IsMoving && Movable)
+        // Calculate the tip target position
+        if (Physics.Raycast(rayOrigin.position, bodyTransform.up.normalized * -1, out hit, maxRayDist))
         {
-            StartCoroutine(PerformStep());
+            RaycastTipPos = hit.point;
+            RaycastTipNormal = hit.normal;
+        }
+        // else
+        // {
+        //     TipPos = RaycastTipPos = rayOrigin.position + bodyTransform.up.normalized * -1 * maxRayDist;
+        //     UpdateIKTargetTransform();
+        //     return;
+        // }
+
+        TipDistance = (RaycastTipPos - TipPos).magnitude;
+
+        // If the distance gets too far, animate and move the tip to new position
+        if (!Animating && (TipDistance > tipMoveDist && Movable))
+        {
+            StartCoroutine(AnimateLeg());
         }
     }
 
-    private Vector3 FindGround()
+    private IEnumerator AnimateLeg()
     {
-        // Raycast down from the ideal position to find the ground
-        Ray ray = new Ray(idealPosition + Vector3.up, Vector3.down);
-        if (Physics.Raycast(ray, out RaycastHit hit, 2f, terrainLayer))
+        Animating = true;
+
+        float timer = 0.0f;
+        float animTime;
+
+        Vector3 startingTipPos = TipPos;
+        Vector3 tipDirVec = RaycastTipPos - TipPos;
+        tipDirVec += tipDirVec.normalized * tipPassOver;
+
+        Vector3 right = Vector3.Cross(bodyTransform.up, tipDirVec.normalized).normalized;
+        TipUpDir = Vector3.Cross(tipDirVec.normalized, right);
+
+        while (timer < tipAnimationTime + tipAnimationFrameTime)
         {
-            CurrentNormal = hit.normal; // Store the normal of the ground surface
-            return hit.point;
-        }
-        // If no ground is found, return the current position
-        return transform.position;
-    }
+            animTime = speedCurve.Evaluate(timer / tipAnimationTime);
 
-    private IEnumerator PerformStep()
-    {
-        IsMoving = true;
+            // If the target is keep moving, apply acceleration to correct the end point
+            float tipAcceleration = Mathf.Max((RaycastTipPos - startingTipPos).magnitude / tipDirVec.magnitude, 1.0f);
 
-        Vector3 startPos = transform.position;
-        Vector3 targetPos = FindGround();
+            TipPos = startingTipPos + tipDirVec * tipAcceleration * animTime; // Forward direction of tip vector
+            TipPos += TipUpDir * heightCurve.Evaluate(animTime) * tipMaxHeight; // Upward direction of tip vector
 
-        float timeElapsed = 0f;
+            UpdateIKTargetTransform();
 
-        while (timeElapsed < 1f / stepSpeed)
-        {
-            timeElapsed += Time.deltaTime;
-            float progress = timeElapsed * stepSpeed;
+            timer += tipAnimationFrameTime;
 
-            // Use animation curves for smooth, customizable movement
-            float speedProgress = stepSpeedCurve.Evaluate(progress);
-            float heightProgress = stepHeightCurve.Evaluate(progress);
-
-            // Interpolate position
-            Vector3 newPos = Vector3.Lerp(startPos, targetPos, speedProgress);
-            newPos.y += heightProgress * stepHeight; // Add height to create an arc
-
-            ikTarget.position = newPos;
-
-            yield return null;
+            yield return new WaitForSeconds(tipAnimationFrameTime);
         }
 
-        // Ensure the target is exactly at the final position
-        ikTarget.position = targetPos;
-        IsMoving = false;
+        Animating = false;
     }
 
-    // Draw gizmos in the editor to visualize what the script is doing
+    private void UpdateIKTargetTransform()
+    {
+        // Update leg ik target transform depend on tip information
+        ikTarget.transform.position = TipPos + bodyTransform.up.normalized * ikOffset;
+        ikTarget.transform.rotation = Quaternion.LookRotation(TipPos - ikTarget.transform.position) * Quaternion.Euler(90, 0, 0);
+    }
+
     private void OnDrawGizmos()
     {
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawSphere(RaycastTipPos, 0.1f);
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawSphere(TipPos, 0.1f);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(TipPos, RaycastTipPos);
+
         Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(idealPosition, 0.1f); // Ideal position
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawSphere(transform.position, 0.1f); // Current position
+        Gizmos.DrawSphere(ikTarget.transform.position, 0.1f);
     }
 }

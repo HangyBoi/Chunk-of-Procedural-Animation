@@ -1,3 +1,4 @@
+using MimicSpace;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,95 +7,112 @@ using UnityEngine;
 // and adjusts the body's position and orientation to match the terrain.
 public class SpiderController : MonoBehaviour
 {
-    [Header("Body Components")]
-    [SerializeField] private Transform body; // The spider's main body transform
-    [SerializeField] private LegSolver[] legs; // An array of all the leg solvers
+    [SerializeField] private Transform bodyTransform;
+    [SerializeField] private LegSolver[] legs;
 
-    [Header("Gait Settings")]
-    [Tooltip("How many legs can be moving at the same time.")]
-    [SerializeField] private int maxMovingLegs = 2;
+    private float maxTipWait = 0.7f;
 
-    [Header("Body Orientation")]
-    [SerializeField] private float bodyHeight = 1.5f; // How high the body should be off the ground
-    [SerializeField] private float bodyAdjustSpeed = 5f; // How quickly the body adjusts its position and rotation
+    private bool readySwitchOrder = false;
+    private bool stepOrder = true;
+    private float bodyHeightBase = 1.3f;
+
+    private Vector3 bodyPos;
+    private Vector3 bodyUp;
+    private Vector3 bodyForward;
+    private Vector3 bodyRight;
+    private Quaternion bodyRotation;
+
+    private float PosAdjustRatio = 0.1f;
+    private float RotAdjustRatio = 0.2f;
 
     private void Start()
     {
-        // Start the coroutine that continuously manages the leg movement sequence
-        StartCoroutine(ManageGait());
+        // Start coroutine to adjust body transform
+        StartCoroutine(AdjustBodyTransform());
     }
 
     private void Update()
     {
-        AdjustBodyTransform();
+        if (legs.Length < 2) return;
+
+        // If tip is not in current order but it's too far from target position, Switch the order
+        for (int i = 0; i < legs.Length; i++)
+        {
+            if (legs[i].TipDistance > maxTipWait)
+            {
+                stepOrder = i % 2 == 0;
+                break;
+            }
+        }
+
+        // Ordering steps
+        foreach (LegSolver leg in legs)
+        {
+            leg.Movable = stepOrder;
+            stepOrder = !stepOrder;
+        }
+
+        int index = stepOrder ? 0 : 1;
+
+        // If the opposite foot step completes, switch the order to make a new step
+        if (readySwitchOrder && !legs[index].Animating)
+        {
+            stepOrder = !stepOrder;
+            readySwitchOrder = false;
+        }
+
+        if (!readySwitchOrder && legs[index].Animating)
+        {
+            readySwitchOrder = true;
+        }
     }
 
-    private IEnumerator ManageGait()
+    private IEnumerator AdjustBodyTransform()
     {
-        // This is a continuous loop that runs in the background
         while (true)
         {
-            int movingLegsCount = 0;
-            foreach (var leg in legs)
+            Vector3 tipCenter = Vector3.zero;
+            bodyUp = Vector3.zero;
+
+            // Collect leg information to calculate body transform
+            foreach (LegSolver leg in legs)
             {
-                if (leg.IsMoving)
-                {
-                    movingLegsCount++;
-                }
+                tipCenter += leg.TipPos;
+                bodyUp += leg.TipUpDir + leg.RaycastTipNormal;
             }
 
-            // If we have room to move another leg, find one that needs to step
-            if (movingLegsCount < maxMovingLegs)
+            RaycastHit hit;
+            if (Physics.Raycast(bodyTransform.position, bodyTransform.up * -1, out hit, 10.0f))
             {
-                // Simple gait: just tell all legs they are allowed to move if they need to.
-                // The LegSolver script itself checks the distance and decides if a step is necessary.
-                foreach (var leg in legs)
-                {
-                    leg.Movable = true;
-                }
-            }
-            else // If too many legs are moving, tell all non-moving legs to wait
-            {
-                foreach (var leg in legs)
-                {
-                    if (!leg.IsMoving)
-                    {
-                        leg.Movable = false;
-                    }
-                }
+                bodyUp += hit.normal;
             }
 
-            yield return null; // Wait for the next frame
+            tipCenter /= legs.Length;
+            bodyUp.Normalize();
+
+            // Interpolate postition from old to new
+            bodyPos = tipCenter + bodyUp * bodyHeightBase;
+            bodyTransform.position = Vector3.Lerp(bodyTransform.position, bodyPos, PosAdjustRatio);
+
+            // Calculate new body axis
+            bodyRight = Vector3.Cross(bodyUp, bodyTransform.forward);
+            bodyForward = Vector3.Cross(bodyRight, bodyUp);
+
+            // Interpolate rotation from old to new
+            bodyRotation = Quaternion.LookRotation(bodyForward, bodyUp);
+            bodyTransform.rotation = Quaternion.Slerp(bodyTransform.rotation, bodyRotation, RotAdjustRatio);
+
+            yield return new WaitForFixedUpdate();
         }
     }
 
-    private void AdjustBodyTransform()
+    private void OnDrawGizmos()
     {
-        // --- 1. Calculate Average Position ---
-        Vector3 averagePosition = Vector3.zero;
-        foreach (var leg in legs)
-        {
-            averagePosition += leg.CurrentPosition;
-        }
-        averagePosition /= legs.Length;
-
-        // --- 2. Calculate Average Normal (for tilting the body) ---
-        Vector3 averageNormal = Vector3.zero;
-        foreach (var leg in legs)
-        {
-            averageNormal += leg.CurrentNormal;
-        }
-        averageNormal.Normalize();
-
-        // --- 3. Calculate Target Body Position and Rotation ---
-        // The target position is above the center of the feet, oriented by the average normal
-        Vector3 targetPosition = averagePosition + averageNormal * bodyHeight;
-
-        // The target rotation looks forward, but its "up" direction is the average ground normal
-        Quaternion targetRotation = Quaternion.LookRotation(body.forward, averageNormal);
-
-        // --- 4. Smoothly Interpolate (Lerp) the Body to the Target ---
-        body.position = Vector3.Lerp(body.position, targetPosition, Time.deltaTime * bodyAdjustSpeed);
-        body.rotation = Quaternion.Slerp(body.rotation, targetRotation, Time.deltaTime * bodyAdjustSpeed);
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(bodyPos, bodyPos + bodyRight);
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(bodyPos, bodyPos + bodyUp);
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(bodyPos, bodyPos + bodyForward);
     }
 }
