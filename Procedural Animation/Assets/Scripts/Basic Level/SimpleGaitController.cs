@@ -39,7 +39,7 @@ public class SimpleGaitController : MonoBehaviour
 
     void Awake()
     {
-        playerMover = GetComponentInParent<SimplePlayerMover>();
+        playerMover = GetComponent<SimplePlayerMover>();
     }
 
     void Update()
