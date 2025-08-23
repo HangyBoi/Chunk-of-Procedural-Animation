@@ -64,59 +64,58 @@ public class SimpleGaitController : MonoBehaviour
 
     void LateUpdate()
     {
-        // --- NEW: Grounding Check ---
-        // We will only calculate player movement if the spider is stable.
-        Vector3 playerMovement = Vector3.zero;
-        if (IsSpiderGrounded())
+        // --- Calculate the Center and Up Direction from the Legs ---
+        Vector3 averageLegPosition = Vector3.zero;
+        Vector3 averageNormal = Vector3.zero;
+        int groundedLegCount = 0;
+
+        foreach (var leg in allLegs)
         {
-            // The spider is stable, so we can apply the player's desired velocity.
-            playerMovement = playerMover.DesiredVelocity * Time.deltaTime;
-        }
-
-
-        // --- Step 9: Calculate Ideal Body Position ---
-        averageLegPosition = GetAveragePosition(allLegs);
-        // We now use our new 'playerMovement' variable, which will be zero if the spider is unstable.
-        desiredBodyPosition = averageLegPosition + playerMovement;
-        desiredBodyPosition.y += bodyHeightOffset;
-
-
-        // --- Body Collision Safety Check ---
-        RaycastHit hit;
-        if (Physics.Raycast(desiredBodyPosition + Vector3.up, Vector3.down, out hit, 2f, allLegs[0].groundLayer))
-        {
-            float minimumHeight = hit.point.y + bodyGroundClearance;
-            if (desiredBodyPosition.y < minimumHeight)
+            if (leg.IsGrounded)
             {
-                desiredBodyPosition.y = minimumHeight;
+                averageLegPosition += leg.transform.position;
+
+                // Raycast down from the foot to get the normal of the ground it's standing on
+                RaycastHit hit;
+                if (Physics.Raycast(leg.transform.position + Vector3.up, Vector3.down, out hit, 2f, leg.groundLayer))
+                {
+                    averageNormal += hit.normal;
+                }
+                groundedLegCount++;
             }
         }
 
-        finalBodyPosition = desiredBodyPosition;
-
-        // --- Move and Rotate the Body ---
-        transform.position = Vector3.Lerp(transform.position, finalBodyPosition, bodyAdaptSpeed * Time.deltaTime);
-
-        // --- Step 10: Body Rotation ---
-        // (Rotation logic is complex, let's focus on position first. You can comment this out temporarily if needed)
-        Vector3 leftLegsAverage = GetAveragePosition(legGroupA.Where((leg, i) => i % 2 == 0).Concat(legGroupB.Where((leg, i) => i % 2 != 0)).ToArray());
-        Vector3 rightLegsAverage = GetAveragePosition(legGroupA.Where((leg, i) => i % 2 != 0).Concat(legGroupB.Where((leg, i) => i % 2 == 0)).ToArray());
-
-        Vector3 forwardDirection = (rightLegsAverage - leftLegsAverage);
-        Vector3 upDirection = Vector3.Cross(forwardDirection, transform.forward).normalized;
-
-        if (upDirection != Vector3.zero) // Avoid issues when upDirection is zero
+        if (groundedLegCount > 0)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(transform.forward, upDirection);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, bodyAdaptSpeed * Time.deltaTime);
+            averageLegPosition /= groundedLegCount;
+            averageNormal /= groundedLegCount;
         }
 
-        if (playerMover == null)
+        // --- 1. BODY POSITIONING ---
+        // Calculate the ideal body position
+        Vector3 desiredBodyPosition = averageLegPosition + averageNormal * bodyHeightOffset;
+
+        // Add player movement ONLY if the spider is stable
+        if (groundedLegCount >= minGroundedLegs)
         {
-            Debug.LogError("GaitController: playerMover reference is NULL!");
-            return;
+            // Now we use the corrected velocity from our player mover
+            desiredBodyPosition += playerMover.DesiredVelocity * Time.deltaTime;
         }
-        Debug.Log("GaitController: Reading velocity of " + playerMover.DesiredVelocity);
+
+        // Smoothly move the body to the target position
+        transform.position = Vector3.Lerp(transform.position, desiredBodyPosition, bodyAdaptSpeed * Time.deltaTime);
+
+        // --- 2. BODY ROTATION ---
+        // Calculate the target rotation
+        Vector3 bodyForward = transform.forward; // Use current forward direction
+        Vector3 bodyRight = Vector3.Cross(averageNormal, bodyForward).normalized;
+        bodyForward = Vector3.Cross(bodyRight, averageNormal).normalized; // Recalculate forward to be perpendicular to the new up and right
+
+        // Create the target rotation
+        Quaternion targetRotation = Quaternion.LookRotation(bodyForward, averageNormal);
+
+        // Smoothly rotate the body
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, bodyAdaptSpeed * Time.deltaTime);
     }
 
     // --- NEW: Helper function to check the spider's stability ---

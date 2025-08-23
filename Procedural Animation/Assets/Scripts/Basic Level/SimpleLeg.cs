@@ -19,8 +19,11 @@ public class SimpleLeg : MonoBehaviour
     [Tooltip("The speed at which the foot moves to its new position.")]
     public float stepSpeed = 5f;
 
-    [Tooltip("How high the leg should lift during a step, creating an arc.")]
-    public float stepHeight = 0.3f;
+    [Header("Animation Curves")]
+    [Tooltip("The height profile of the step. Y-axis is height, X-axis is time (0 to 1).")]
+    public AnimationCurve stepHeightCurve;
+    [Tooltip("The maximum height the foot will reach during a step.")]
+    public float stepMaxHeight = 0.3f;
 
     // --- Private Variables ---
     private Vector3 currentTargetPosition;
@@ -111,7 +114,7 @@ public class SimpleLeg : MonoBehaviour
             ikTargetTransform.position = Vector3.Lerp(startPosition, currentTargetPosition, percent);
 
             // Add the step height, multiplied by our smoothed height percentage.
-            ikTargetTransform.position += Vector3.up * stepHeight * heightPercent;
+            ikTargetTransform.position += Vector3.up * stepMaxHeight * heightPercent;
 
 
             // Yield execution until the next frame.
