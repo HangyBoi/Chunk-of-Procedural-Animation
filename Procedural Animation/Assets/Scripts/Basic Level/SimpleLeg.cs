@@ -22,7 +22,6 @@ public class SimpleLeg : MonoBehaviour
     [Tooltip("How high the leg should lift during a step, creating an arc.")]
     public float stepHeight = 0.3f;
 
-
     // --- Private Variables ---
     private Vector3 currentTargetPosition;
     private Vector3 lastGroundedPosition;
@@ -33,6 +32,7 @@ public class SimpleLeg : MonoBehaviour
 
     // A public property to let other scripts know if this leg is moving.
     public bool IsStepping => isStepping;
+    public bool IsGrounded => !isStepping;
 
     void Awake()
     {
@@ -43,6 +43,20 @@ public class SimpleLeg : MonoBehaviour
         // We start by assuming the leg is perfectly placed on the ground at its initial position.
         lastGroundedPosition = ikTargetTransform.position;
         currentTargetPosition = shoulderJoint.position;
+    }
+
+    void Start()
+    {
+        // Raycast down to find the initial ground position
+        RaycastHit hit;
+        if (Physics.Raycast(shoulderJoint.position, Vector3.down, out hit, 2f, groundLayer))
+        {
+            // Set the IK target to this position immediately
+            ikTargetTransform.position = hit.point;
+            // Update our tracking variables
+            lastGroundedPosition = hit.point;
+            currentTargetPosition = hit.point;
+        }
     }
 
     // This function will be called by our Gait Controller.
