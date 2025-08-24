@@ -36,8 +36,8 @@ public class Leg : MonoBehaviour
     {
         legController = GetComponentInParent<LegController>();
 
-        transform.parent = bodyTransform;
-        rayOrigin.parent = bodyTransform;
+        //transform.parent = bodyTransform;
+        //rayOrigin.parent = bodyTransform;
         TipPos = ikTarget.transform.position;
     }
 
