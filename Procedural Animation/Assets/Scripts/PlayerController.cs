@@ -1,31 +1,32 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-// This script handles the player's input to move and rotate the spider's main body.
-// It acts as the "driver" and knows nothing about the legs or the ground.
 public class PlayerController : MonoBehaviour
 {
-    [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 5.0f;
-    [SerializeField] private float rotateSpeed = 100.0f;
+    // Player movement script
+
+    private float MoveSpeed { get; } = 3.8f;
+    private float RotSpeed { get; } = 80.0f;
 
     void Update()
     {
-        // Forward/Backward movement based on Vertical axis (W/S keys or controller stick)
-        float verticalInput = Input.GetAxis("Vertical");
-        transform.Translate(transform.forward * verticalInput * moveSpeed * Time.deltaTime, Space.World);
+        // Handle keyboard control
+        // This loop competes with AdjustBodyTransform() in LegController script to properly postion the body transform
 
-        // Left/Right rotation based on Horizontal axis (A/D keys or controller stick)
-        float horizontalInput = Input.GetAxis("Horizontal");
-        transform.Rotate(Vector3.up, horizontalInput * rotateSpeed * Time.deltaTime);
+        float ws = Input.GetAxis("Vertical") * MoveSpeed * Time.deltaTime;
+        transform.Translate(0, 0, ws);
 
-        // Use Q and E for strafing or turning
+        float ad = Input.GetAxis("Horizontal") * MoveSpeed * Time.deltaTime;
+        transform.Translate(ad, 0, 0);
+
         if (Input.GetKey(KeyCode.Q))
         {
-            transform.Rotate(Vector3.up, -rotateSpeed * Time.deltaTime);
+            transform.Rotate(0, -RotSpeed * Time.deltaTime, 0);
         }
         if (Input.GetKey(KeyCode.E))
         {
-            transform.Rotate(Vector3.up, rotateSpeed * Time.deltaTime);
+            transform.Rotate(0, RotSpeed * Time.deltaTime, 0);
         }
     }
 }
