@@ -56,12 +56,12 @@ public class LegSolver : MonoBehaviour
             RaycastTipPos = hit.point;
             RaycastTipNormal = hit.normal;
         }
-        //else
-        //{
-        //    TipPos = RaycastTipPos = rayOrigin.position + bodyTransform.up.normalized * -1 * maxRayDist;
-        //    UpdateIKTargetTransform();
-        //    return;
-        //}
+        // else
+        // {
+        //     TipPos = RaycastTipPos = rayOrigin.position + bodyTransform.up.normalized * -1 * maxRayDist;
+        //     UpdateIKTargetTransform();
+        //     return;
+        // }
 
         TipDistance = (RaycastTipPos - TipPos).magnitude;
 
