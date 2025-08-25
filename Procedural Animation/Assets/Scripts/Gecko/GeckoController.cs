@@ -13,7 +13,7 @@ public class GeckoController : MonoBehaviour
     [Tooltip("The maximum angle the head can turn to look at the target")]
     [SerializeField] float headMaxTurnAngle = 60.0f;
     [Tooltip("How fast the head will turn to look at the target")]
-    [SerializeField, Range(0.1f, 20f)] float headTrackingSpeed = 5.0f;
+    [SerializeField, Range(0.1f, 40f)] float headTrackingSpeed = 20.0f;
 
     [Header("Eye Tracking Settings")]
     // References to the eye bones
@@ -21,22 +21,22 @@ public class GeckoController : MonoBehaviour
     [SerializeField] Transform rightEyeBone;
 
     [Tooltip("How fast the eyes will turn to look at the target")]
-    [SerializeField, Range(0.1f, 20f)] float eyeTrackingSpeed = 9.0f;
+    [SerializeField, Range(0.1f, 40f)] float eyeTrackingSpeed = 30.0f;
     // The maximum and minimum rotation angles for the eyes
-    [SerializeField] float leftEyeMaxYRotation = 30.0f;
-    [SerializeField] float leftEyeMinYRotation = -30.0f;
-    [SerializeField] float rightEyeMaxYRotation = 30.0f;
-    [SerializeField] float rightEyeMinYRotation = -30.0f;
+    [SerializeField] float leftEyeMaxYRotation = 10.0f;
+    [SerializeField] float leftEyeMinYRotation = -180.0f;
+    [SerializeField] float rightEyeMaxYRotation = 180.0f;
+    [SerializeField] float rightEyeMinYRotation = -10.0f;
 
     [Header("Body Movement Settings")]
     [Tooltip("How fast the gecko can turn (degrees per second)")]
-    [SerializeField] float turnSpeed;
+    [SerializeField, Range(1f, 360f)] float turnSpeed = 150.0f;
     [Tooltip("How fast the gecko can move (units per second)")]
-    [SerializeField] float moveSpeed;
+    [SerializeField, Range(0.1f, 10f)] float moveSpeed = 3.0f;
     [Tooltip("How fast the gecko accelerates when turning (degrees per second squared)")]
-    [SerializeField] float turnAcceleration;
+    [SerializeField, Range(0.1f, 10f)] float turnAcceleration = 4.0f;
     [Tooltip("How fast the gecko accelerates when moving (units per second squared)")]
-    [SerializeField] float moveAcceleration;
+    [SerializeField, Range(0.1f, 10f)] float moveAcceleration = 1.0f;
 
     // Try to stay in this range from the target
     [SerializeField] float minDistToTarget;
