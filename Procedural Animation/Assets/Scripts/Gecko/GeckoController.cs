@@ -15,16 +15,27 @@ public class GeckoController : MonoBehaviour
     [SerializeField] bool legSteppingEnabled = true;
     [SerializeField] bool bodyAdjustmentEnabled = true;
 
+    [Header("--- Control Mode ---")]
+    [Tooltip("Enable this to control the gecko with WASDQE keys instead of following the target.")]
+    [SerializeField] bool useManualControl = false;
+
     void Awake()
     {
         StartCoroutine(LegUpdateCoroutine());
-        RootBoneInitialize();
         TailInitialize();
+        RootBoneInitialize();
     }
 
     void Update()
     {
-        RootMotionUpdate();
+        if (useManualControl)
+        {
+            ManualMovementUpdate();
+        }
+        else
+        {
+            RootMotionUpdate();
+        }
     }
 
     void LateUpdate()
@@ -136,6 +147,53 @@ public class GeckoController : MonoBehaviour
         transform.position += currentVelocity * Time.deltaTime;
     }
 
+    /// <summary>
+    /// Updates the gecko's position and rotation based on keyboard input (WASDQE).
+    /// </summary>
+    void ManualMovementUpdate()
+    {
+        if (!rootMotionEnabled) return;
+
+        // --- Get Player Input ---
+        float verticalInput = Input.GetAxis("Vertical"); // W/S or Up/Down arrows
+        float horizontalInput = Input.GetAxis("Horizontal"); // A/D or Left/Right arrows
+
+        float rotationInput = 0f;
+        if (Input.GetKey(KeyCode.E))
+        {
+            rotationInput = 1f;
+        }
+        else if (Input.GetKey(KeyCode.Q))
+        {
+            rotationInput = -1f;
+        }
+
+        // --- Calculate Target Velocity ---
+        // Combine forward/backward and strafe movement, relative to the gecko's orientation
+        Vector3 moveDirection = (transform.forward * verticalInput + transform.right * horizontalInput).normalized;
+        Vector3 targetVelocity = moveDirection * moveSpeed;
+
+        // --- Calculate Target Angular Velocity ---
+        float targetAngularVelocity = rotationInput * turnSpeed;
+
+        // --- Apply Smoothing (using the same logic as the AI) ---
+        currentVelocity = Vector3.Lerp(
+          currentVelocity,
+          targetVelocity,
+          1 - Mathf.Exp(-moveAcceleration * Time.deltaTime)
+        );
+
+        currentAngularVelocity = Mathf.Lerp(
+          currentAngularVelocity,
+          targetAngularVelocity,
+          1 - Mathf.Exp(-turnAcceleration * Time.deltaTime)
+        );
+
+        // --- Apply the final movement ---
+        transform.position += currentVelocity * Time.deltaTime;
+        transform.Rotate(0, Time.deltaTime * currentAngularVelocity, 0, Space.World);
+    }
+
     #endregion
 
     #region Body Adjustment
@@ -173,8 +231,7 @@ public class GeckoController : MonoBehaviour
     {
         if (!bodyAdjustmentEnabled || rootBone == null) return;
 
-        // --- Calculate Target Position ---
-        // Get the average position of all four feet
+        // --- Calculate Average Feet Position and Ground Normal ---
         Vector3 feetCenterPoint = (
             frontLeftLegStepper.transform.position +
             frontRightLegStepper.transform.position +
@@ -182,32 +239,50 @@ public class GeckoController : MonoBehaviour
             backRightLegStepper.transform.position
         ) / 4;
 
-        // The target position is this center point, plus an upward offset.
-        // We transform this world position into the local space of the gecko's main object.
-        Vector3 targetBodyPosition = transform.InverseTransformPoint(feetCenterPoint) + Vector3.up * bodyHeight;
-
-
-        // --- Calculate Target Rotation ---
-        // Get vectors that define the plane of the feet
+        // Create two vectors along the plane defined by the feet
         Vector3 frontVector = frontRightLegStepper.transform.position - frontLeftLegStepper.transform.position;
         Vector3 sideVector = backLeftLegStepper.transform.position - frontLeftLegStepper.transform.position;
-
-        // The cross product gives us the normal vector (the "up" direction) of the plane
         Vector3 planeNormal = Vector3.Cross(frontVector, sideVector).normalized;
 
-        // Create a target rotation that aligns the body's 'up' with the plane normal
-        // and its 'forward' with the gecko's main forward direction.
-        Quaternion targetBodyRotation = Quaternion.LookRotation(transform.forward, planeNormal);
+        // Ensure normal is pointing generally upwards
+        if (Vector3.Dot(planeNormal, transform.up) < 0)
+        {
+            planeNormal *= -1;
+        }
+
+        // --- Calculate Target Rotation ---
+        // 1. Calculate the target rotation in World Space
+        Quaternion targetWorldRotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(transform.forward, planeNormal), planeNormal);
+        // 2. Convert the World Space rotation to the parent's Local Space
+        Quaternion targetLocalRotation = Quaternion.Inverse(transform.rotation) * targetWorldRotation;
+
+
+        // --- Calculate Target Position ---
+        // 1. Calculate the desired WORLD position of the root bone.
+        Vector3 targetWorldPosition = feetCenterPoint + (planeNormal * bodyHeight);
+
+        // 2. Convert this world position to the LOCAL space of the GeckoBrain (the parent transform).
+        Vector3 targetLocalPosition = transform.InverseTransformPoint(targetWorldPosition);
+
+        // 3. Create the final target position using the root bone's initial X and Z
+        //    and ONLY the calculated Y from our target. This prevents the feedback loop.
+        Vector3 finalTargetPosition = new Vector3(
+            initialRootBonePosition.x,
+            targetLocalPosition.y,
+            initialRootBonePosition.z
+        );
 
 
         // --- Apply Smoothing ---
-        // Smoothly move the root bone towards the target position and rotation.
-        smoothedBodyPosition.Step(targetBodyPosition, bodyPositionSpeed);
-        smoothedBodyRotation = Quaternion.Slerp(smoothedBodyRotation, targetBodyRotation, 1 - Mathf.Exp(-bodyRotationSpeed * Time.deltaTime));
+        smoothedBodyPosition.Step(finalTargetPosition, bodyPositionSpeed);
+        smoothedBodyRotation = Quaternion.Slerp(
+            smoothedBodyRotation,
+            targetLocalRotation,
+            1 - Mathf.Exp(-bodyRotationSpeed * Time.deltaTime)
+        );
 
-        // Apply the final calculated position and rotation to the root bone.
-        // We use localPosition/Rotation because the rootBone is a child of the main transform.
-        rootBone.SetLocalPositionAndRotation(smoothedBodyPosition, smoothedBodyRotation);
+        // Apply the final LOCAL position and rotation to the root bone.
+        rootBone.SetLocalPositionAndRotation(smoothedBodyPosition.currentValue, smoothedBodyRotation);
     }
 
     #endregion
