@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class LegController : MonoBehaviour
 {
+    [SerializeField] private PlayerController playerController;
     [SerializeField] private Transform bodyTransform;
     [SerializeField] private Leg[] legs;
 
@@ -22,8 +23,19 @@ public class LegController : MonoBehaviour
     private float PosAdjustRatio = 0.1f;
     private float RotAdjustRatio = 0.2f;
 
+    private int legUpdateIndex = 0;
+
+    // Define leg groups. This requires careful setup based on leg names/indices.
+    // Example for a tripod gait:
+    private int[] groupA = { 0, 2, 5, 7 }; // Front-left, Mid-left, Mid-right, Back-right
+    private int[] groupB = { 1, 3, 4, 6 }; // And the rest
+
+    private bool useGroupA = true; // Which group's turn is it
+
     private void Start()
     {
+        StartCoroutine(MoveSpider());
+
         // Start coroutine to adjust body transform
         StartCoroutine(AdjustBodyTransform());
     }
@@ -61,6 +73,29 @@ public class LegController : MonoBehaviour
         if (!readySwitchOrder && legs[index].Animating)
         {
             readySwitchOrder = true;
+        }
+
+        // Update only one or two legs' raycasts per frame
+        legs[legUpdateIndex].UpdateRaycast();
+        legUpdateIndex = (legUpdateIndex + 1) % legs.Length;
+
+        // You might update a second one for symmetry
+        int oppositeIndex = (legUpdateIndex + legs.Length / 2) % legs.Length;
+        legs[oppositeIndex].UpdateRaycast();
+    }
+
+    private IEnumerator MoveSpider()
+    {
+        while (true)
+        {
+            // Apply movement based on player controller's intent
+            Vector3 worldMoveDirection = bodyTransform.TransformDirection(playerController.MoveDirection);
+            bodyTransform.position += worldMoveDirection * playerController.moveSpeed * Time.deltaTime;
+
+            // Apply rotation
+            bodyTransform.Rotate(0, playerController.RotationDirection * playerController.rotSpeed * Time.deltaTime, 0);
+
+            yield return null; // Run every frame
         }
     }
 

@@ -1,32 +1,23 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    // Player movement script
+    public Vector3 MoveDirection { get; private set; }
+    public float RotationDirection { get; private set; }
 
-    private float MoveSpeed { get; } = 3.8f;
-    private float RotSpeed { get; } = 80.0f;
+    [SerializeField] public float moveSpeed = 3.8f;
+    [SerializeField] public float rotSpeed = 80.0f;
 
     void Update()
     {
-        // Handle keyboard control
-        // This loop competes with AdjustBodyTransform() in LegController script to properly postion the body transform
+        // Get movement input
+        float ws = Input.GetAxis("Vertical");
+        float ad = Input.GetAxis("Horizontal");
+        MoveDirection = new Vector3(ad, 0, ws).normalized;
 
-        float ws = Input.GetAxis("Vertical") * MoveSpeed * Time.deltaTime;
-        transform.Translate(0, 0, ws);
-
-        float ad = Input.GetAxis("Horizontal") * MoveSpeed * Time.deltaTime;
-        transform.Translate(ad, 0, 0);
-
-        if (Input.GetKey(KeyCode.Q))
-        {
-            transform.Rotate(0, -RotSpeed * Time.deltaTime, 0);
-        }
-        if (Input.GetKey(KeyCode.E))
-        {
-            transform.Rotate(0, RotSpeed * Time.deltaTime, 0);
-        }
+        // Get rotation input
+        RotationDirection = 0f;
+        if (Input.GetKey(KeyCode.Q)) RotationDirection = -1f;
+        if (Input.GetKey(KeyCode.E)) RotationDirection = 1f;
     }
 }

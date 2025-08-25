@@ -700,6 +700,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  stepDistance: 0.55
+  stepOvershoot: 0.2
+  stepHeight: 0.2
+  stepDuration: 0.15
+  raycastMaxDistance: 7
+  ikTargetVerticalOffset: 1
 --- !u!114 &199348491
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2339,6 +2345,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  stepDistance: 0.55
+  stepOvershoot: 0.2
+  stepHeight: 0.2
+  stepDuration: 0.15
+  raycastMaxDistance: 7
+  ikTargetVerticalOffset: 1
 --- !u!1 &685745976
 GameObject:
   m_ObjectHideFlags: 0
@@ -3123,6 +3135,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  stepDistance: 0.55
+  stepOvershoot: 0.2
+  stepHeight: 0.2
+  stepDuration: 0.15
+  raycastMaxDistance: 7
+  ikTargetVerticalOffset: 1
 --- !u!1 &890403865
 GameObject:
   m_ObjectHideFlags: 0
@@ -4110,6 +4128,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  stepDistance: 0.55
+  stepOvershoot: 0.2
+  stepHeight: 0.2
+  stepDuration: 0.15
+  raycastMaxDistance: 7
+  ikTargetVerticalOffset: 1
 --- !u!1 &1143939488
 GameObject:
   m_ObjectHideFlags: 0
@@ -5141,6 +5165,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  stepDistance: 0.55
+  stepOvershoot: 0.2
+  stepHeight: 0.2
+  stepDuration: 0.15
+  raycastMaxDistance: 7
+  ikTargetVerticalOffset: 1
 --- !u!1 &1340848677
 GameObject:
   m_ObjectHideFlags: 0
@@ -6032,6 +6062,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  stepDistance: 0.55
+  stepOvershoot: 0.2
+  stepHeight: 0.2
+  stepDuration: 0.15
+  raycastMaxDistance: 7
+  ikTargetVerticalOffset: 1
 --- !u!1 &1650379231
 GameObject:
   m_ObjectHideFlags: 0
@@ -6309,6 +6345,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  stepDistance: 0.55
+  stepOvershoot: 0.2
+  stepHeight: 0.2
+  stepDuration: 0.15
+  raycastMaxDistance: 7
+  ikTargetVerticalOffset: 1
 --- !u!1 &1676149683
 GameObject:
   m_ObjectHideFlags: 0
@@ -7138,6 +7180,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  stepDistance: 0.55
+  stepOvershoot: 0.2
+  stepHeight: 0.2
+  stepDuration: 0.15
+  raycastMaxDistance: 7
+  ikTargetVerticalOffset: 1
 --- !u!1 &1749161447
 GameObject:
   m_ObjectHideFlags: 0
@@ -7717,6 +7765,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b99912e4f18ced44bd6f740df255b12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerController: {fileID: 3252886733559324162}
   bodyTransform: {fileID: 8477328819708687844}
   legs:
   - {fileID: 1628722323}
@@ -7739,6 +7788,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c83b4b2ab18552f41b57167ac9b9096b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 3.8
+  rotSpeed: 80
 --- !u!1 &3718817795413976130
 GameObject:
   m_ObjectHideFlags: 0
