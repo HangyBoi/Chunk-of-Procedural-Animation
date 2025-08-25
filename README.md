@@ -10,6 +10,10 @@ This repository contains the source code for my Personal Portfolio project. **Fo
 
 ### ☆ [View the Full Project Portfolio on the Wiki](https://github.com/HangyBoi/Chunk-of-Procedural-Animation/wiki) ☆
 
+| Advanced Gecko | ![gecko_FOLLOW-ezgif com-optimize](https://github.com/user-attachments/assets/a313ddff-5fde-4754-852f-30f9612ccd11) |
+|----------|----------|
+| 8-Leg Spider | ![spider_cropped](https://github.com/user-attachments/assets/6c12b0ed-480a-4d31-975f-ccd66e76f157) |
+
 ---
 
 ## Project Description
