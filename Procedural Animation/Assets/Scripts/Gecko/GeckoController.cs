@@ -13,11 +13,12 @@ public class GeckoController : MonoBehaviour
     [SerializeField] bool eyeTrackingEnabled = true;
     [SerializeField] bool tailSwayEnabled = true;
     [SerializeField] bool legSteppingEnabled = true;
-    private bool legIKEnabled = true; // We'll keep this controlled by the button
+    [SerializeField] bool bodyAdjustmentEnabled = true;
 
     void Awake()
     {
         StartCoroutine(LegUpdateCoroutine());
+        RootBoneInitialize();
         TailInitialize();
     }
 
@@ -32,6 +33,8 @@ public class GeckoController : MonoBehaviour
         // We update things in order of dependency, so we update the body first via IdleBobbingUpdate,
         // since the head is moved by the body, then we update the head, since the eyes are moved by the head,
         // and finally the eyes.
+
+        BodyAdjustmentUpdate();
         HeadTrackingUpdate();
         EyeTrackingUpdate();
         TailUpdate();
@@ -60,6 +63,9 @@ public class GeckoController : MonoBehaviour
     // We are only doing a rotation around the up axis, so we only use a float here
     private float currentAngularVelocity;
 
+    /// <summary>
+    /// Updates the gecko's position and rotation to follow the target using smooth acceleration.
+    /// </summary>
     void RootMotionUpdate()
     {
         if (!rootMotionEnabled) return;
@@ -132,6 +138,80 @@ public class GeckoController : MonoBehaviour
 
     #endregion
 
+    #region Body Adjustment
+
+    [Header("Body Adjustment")]
+    [Tooltip("The root bone of the skeleton, usually the hips or pelvis.")]
+    [SerializeField] Transform rootBone;
+    [Tooltip("The desired height of the root bone from the center of the feet.")]
+    [SerializeField] float bodyHeight = 0.5f;
+    [Tooltip("How quickly the body adjusts its position to the terrain.")]
+    [SerializeField] float bodyPositionSpeed = 5.0f;
+    [Tooltip("How quickly the body adjusts its rotation to match the terrain slope.")]
+    [SerializeField] float bodyRotationSpeed = 4.0f;
+
+    // Variables for smoothing the body's movement
+    private SmoothDamp.Vector3 smoothedBodyPosition;
+    private Quaternion smoothedBodyRotation;
+    private Vector3 initialRootBonePosition;
+
+    void RootBoneInitialize()
+    {
+        // Store the initial local position and rotation of the root bone
+        if (rootBone != null)
+        {
+            initialRootBonePosition = rootBone.localPosition;
+            smoothedBodyPosition.currentValue = initialRootBonePosition;
+            smoothedBodyRotation = rootBone.localRotation;
+        }
+    }
+
+    /// <summary>
+    /// Adjusts the body's height and tilt to conform to the terrain the feet are on.
+    /// </summary>
+    void BodyAdjustmentUpdate()
+    {
+        if (!bodyAdjustmentEnabled || rootBone == null) return;
+
+        // --- Calculate Target Position ---
+        // Get the average position of all four feet
+        Vector3 feetCenterPoint = (
+            frontLeftLegStepper.transform.position +
+            frontRightLegStepper.transform.position +
+            backLeftLegStepper.transform.position +
+            backRightLegStepper.transform.position
+        ) / 4;
+
+        // The target position is this center point, plus an upward offset.
+        // We transform this world position into the local space of the gecko's main object.
+        Vector3 targetBodyPosition = transform.InverseTransformPoint(feetCenterPoint) + Vector3.up * bodyHeight;
+
+
+        // --- Calculate Target Rotation ---
+        // Get vectors that define the plane of the feet
+        Vector3 frontVector = frontRightLegStepper.transform.position - frontLeftLegStepper.transform.position;
+        Vector3 sideVector = backLeftLegStepper.transform.position - frontLeftLegStepper.transform.position;
+
+        // The cross product gives us the normal vector (the "up" direction) of the plane
+        Vector3 planeNormal = Vector3.Cross(frontVector, sideVector).normalized;
+
+        // Create a target rotation that aligns the body's 'up' with the plane normal
+        // and its 'forward' with the gecko's main forward direction.
+        Quaternion targetBodyRotation = Quaternion.LookRotation(transform.forward, planeNormal);
+
+
+        // --- Apply Smoothing ---
+        // Smoothly move the root bone towards the target position and rotation.
+        smoothedBodyPosition.Step(targetBodyPosition, bodyPositionSpeed);
+        smoothedBodyRotation = Quaternion.Slerp(smoothedBodyRotation, targetBodyRotation, 1 - Mathf.Exp(-bodyRotationSpeed * Time.deltaTime));
+
+        // Apply the final calculated position and rotation to the root bone.
+        // We use localPosition/Rotation because the rootBone is a child of the main transform.
+        rootBone.SetLocalPositionAndRotation(smoothedBodyPosition, smoothedBodyRotation);
+    }
+
+    #endregion
+
     #region Head Tracking
 
     [Header("Head Tracking")]
@@ -144,6 +224,9 @@ public class GeckoController : MonoBehaviour
     [Tooltip("How fast the head will turn to look at the target")]
     [SerializeField, Range(0.1f, 40f)] float headTrackingSpeed = 20.0f;
 
+    /// <summary>
+    /// Rotates the head bone to look at the target with angle limits and smoothing.
+    /// </summary>
     private void HeadTrackingUpdate()
     {
         if (!headTrackingEnabled)
@@ -197,6 +280,9 @@ public class GeckoController : MonoBehaviour
     [SerializeField] float rightEyeMaxYRotation = 180.0f;
     [SerializeField] float rightEyeMinYRotation = -10.0f;
 
+    /// <summary>
+    /// Rotates the eye bones to look at the target with angle limits and smoothing.
+    /// </summary>
     private void EyeTrackingUpdate()
     {
         if (!eyeTrackingEnabled)
@@ -269,13 +355,21 @@ public class GeckoController : MonoBehaviour
     #region Tail
 
     [Header("Tail")]
+    // All the tail bone transforms in order from the base to the tip.
     [SerializeField] Transform[] tailBones;
+    // How intensely the tail curls in response to turning.
     [SerializeField] float tailTurnMultiplier = 15.0f;
+    // How quickly the tail responds to changes in direction.
     [SerializeField, Range(1f, 20f)] float tailTurnSpeed = 8.0f;
 
+    // Stores the default, resting rotation of each tail bone.
     Quaternion[] tailHomeLocalRotation;
+    // The current, smoothed sway angle of the tail.
     SmoothDamp.Float tailRotation;
 
+    /// <summary>
+    /// Caches the tail's default pose at the start of the game.
+    /// </summary>
     void TailInitialize()
     {
         tailHomeLocalRotation = new Quaternion[tailBones.Length];
@@ -285,20 +379,28 @@ public class GeckoController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Applies procedural sway to the tail based on the body's rotation.
+    /// </summary>
     void TailUpdate()
     {
         if (tailSwayEnabled)
         {
+            // Calculate a target sway angle that opposes the body's current turn direction.
             tailRotation.Step(-currentAngularVelocity / turnSpeed * tailTurnMultiplier, tailTurnSpeed);
 
+            // Apply the calculated sway to each tail bone.
             for (int i = 0; i < tailBones.Length; i++)
             {
+                // Create a rotation from our single sway value.
                 Quaternion rotation = Quaternion.Euler(0, tailRotation, 0);
+                // Multiply the sway by the bone's default rotation to add the effect.
                 tailBones[i].localRotation = rotation * tailHomeLocalRotation[i];
             }
         }
         else
         {
+            // If disabled, reset the tail to its resting pose.
             for (int i = 0; i < tailBones.Length; i++)
             {
                 tailBones[i].localRotation = tailHomeLocalRotation[i];
@@ -311,25 +413,35 @@ public class GeckoController : MonoBehaviour
     #region Legs
 
     [Header("Legs")]
+    // References to the controller script for each of the four legs.
     [SerializeField] LegStepper frontLeftLegStepper;
     [SerializeField] LegStepper frontRightLegStepper;
     [SerializeField] LegStepper backLeftLegStepper;
     [SerializeField] LegStepper backRightLegStepper;
 
+    /// <summary>
+    /// A coroutine that manages the leg stepping gait pattern.
+    /// </summary>
     IEnumerator LegUpdateCoroutine()
     {
+        // This coroutine runs forever.
         while (true)
         {
-            // Wait until stepping is enabled
+            // Pause the gait cycle if leg stepping is disabled.
             while (!legSteppingEnabled) yield return null;
 
+            // --- First Diagonal Pair ---
             do
             {
+                // Tell the legs to check if they should move.
                 frontLeftLegStepper.TryMove();
                 backRightLegStepper.TryMove();
+                // Wait one frame before the next check.
                 yield return null;
+                // Stay in this loop until both legs in the pair have finished stepping.
             } while (backRightLegStepper.Moving || frontLeftLegStepper.Moving);
 
+            // --- Second Diagonal Pair ---
             do
             {
                 frontRightLegStepper.TryMove();

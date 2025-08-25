@@ -3701,6 +3701,7 @@ MonoBehaviour:
   eyeTrackingEnabled: 1
   tailSwayEnabled: 1
   legSteppingEnabled: 1
+  bodyAdjustmentEnabled: 1
   turnSpeed: 150
   moveSpeed: 3
   turnAcceleration: 4
@@ -3708,6 +3709,10 @@ MonoBehaviour:
   minDistToTarget: 4.5
   maxDistToTarget: 6
   maxAngToTarget: 25
+  rootBone: {fileID: 428497219002501819}
+  bodyHeight: 0.5
+  bodyPositionSpeed: 5
+  bodyRotationSpeed: 4
   headBone: {fileID: 428497219002501771}
   headMaxTurnAngle: 60
   headTrackingSpeed: 5
