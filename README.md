@@ -42,3 +42,4 @@ This project features the implementation of two procedurally animated creatures:
 *   Main inspiration for 8-Leg Spider: ["Unity procedural animation tutorial (10 steps)" by Codeer](https://www.youtube.com/watch?v=e6Gjhr1IP6w) & ["Procedural Spider Showcase" by Sopiro](https://www.youtube.com/watch?v=pUp133rtDxM).
 *   Absolute fundamentals laid down by Unity Learn in ["Prototyping Procedural Animation"](https://learn.unity.com/project/prototyping-a-procedural-animated-boss).
 *   Initial research was informed by the articles on Inverse Kinematics by [Alan Zucconi](https://www.alanzucconi.com/).
+*   Google AI Studio for debugging, fixing bugs in code. Additionaly for documentation and Wiki page.
