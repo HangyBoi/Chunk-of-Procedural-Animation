@@ -302,7 +302,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 56039586}
-  - component: {fileID: 56039587}
   m_Layer: 0
   m_Name: Spider Body
   m_TagString: Untagged
@@ -328,20 +327,6 @@ Transform:
   - {fileID: 565861919}
   m_Father: {fileID: 543450653028769130}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &56039587
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 56039585}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 701abf55fb0598a4abdf41960a1501b3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 5
-  rotateSpeed: 100
 --- !u!1 &60927236
 GameObject:
   m_ObjectHideFlags: 0
@@ -1471,7 +1456,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 521985030}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e97706a52bd56742a4923ad109012b3, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f968a9baeb42b844a0e88862e0ee239, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   size: 0.1
@@ -2281,7 +2266,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1132996304}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e97706a52bd56742a4923ad109012b3, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f968a9baeb42b844a0e88862e0ee239, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   size: 0.1
@@ -2740,7 +2725,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1480165568}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e97706a52bd56742a4923ad109012b3, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f968a9baeb42b844a0e88862e0ee239, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   size: 0.1
@@ -2845,7 +2830,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1536151646}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e97706a52bd56742a4923ad109012b3, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f968a9baeb42b844a0e88862e0ee239, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   size: 0.1
@@ -2952,7 +2937,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1676588795}
-  - component: {fileID: 1676588797}
+  - component: {fileID: 1676588796}
   m_Layer: 0
   m_Name: RayOrigin
   m_TagString: Untagged
@@ -2975,7 +2960,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 408914588}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1676588797
+--- !u!114 &1676588796
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2984,7 +2969,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1676588794}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e97706a52bd56742a4923ad109012b3, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f968a9baeb42b844a0e88862e0ee239, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   size: 0.1
@@ -3294,7 +3279,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1853754048}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e97706a52bd56742a4923ad109012b3, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f968a9baeb42b844a0e88862e0ee239, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   size: 0.1
@@ -3510,7 +3495,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1891315634}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e97706a52bd56742a4923ad109012b3, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f968a9baeb42b844a0e88862e0ee239, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   size: 0.1
@@ -3556,7 +3541,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1987053227}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e97706a52bd56742a4923ad109012b3, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f968a9baeb42b844a0e88862e0ee239, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   size: 0.1
@@ -3997,6 +3982,7 @@ GameObject:
   - component: {fileID: 919132148752680913}
   - component: {fileID: 919132148752680916}
   - component: {fileID: 919132148752680914}
+  - component: {fileID: 919132148752680917}
   m_Layer: 0
   m_Name: Rider Spider
   m_TagString: Untagged
@@ -4064,6 +4050,20 @@ MonoBehaviour:
   - {fileID: 365037709}
   - {fileID: 126963770}
   - {fileID: 225366929}
+--- !u!114 &919132148752680917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132148752680912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c83b4b2ab18552f41b57167ac9b9096b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 3.8
+  rotSpeed: 80
 --- !u!1 &919132149232121328
 GameObject:
   m_ObjectHideFlags: 0
